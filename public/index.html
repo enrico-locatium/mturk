@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mechanical Turk Map Task</title>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">    
+</head>
+<body>
+    <div>
+        <textarea id="geojson" style="width: 100%; height: 100px;"></textarea>
+        <button onclick="send()">Submit</button>
+    </div>
+    <div id="map" style="width: 100%; height: 80vh; border: 1px solid #ccc"></div>
+
+    <script>
+        // Parse the URL parameters for latitude, longitude, and zoom
+        const urlParams = new URLSearchParams(window.location.search);
+        const latitude = parseFloat(urlParams.get('latitude')) || 28.5207551327165; // Default latitude
+        const longitude = parseFloat(urlParams.get('longitude')) || -82.2339117214042; // Default longitude
+        const zoom = parseInt(urlParams.get('zoom'), 18) || 18; // Default zoom level
+
+        const map = L.map('map', {
+            center: [latitude, longitude],
+            zoom: zoom
+        });
+
+        // Using OpenStreetMap tile layer; you can replace this with any compatible tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        const drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        // Add drawing controls to the map
+        const drawControl = new L.Control.Draw({
+            edit: {
+                featureGroup: drawnItems,
+                poly: {
+                    allowIntersection: false
+                }
+            },
+            draw: {
+                polyline: false,
+                rectangle: false,
+                circle: false,
+                circlemarker: false,
+                // Customize the Polygon options
+                polygon: {
+                    allowIntersection: false, // Restricts shapes to simple polygons
+                    showArea: true
+                }
+            }
+        });
+        map.addControl(drawControl);
+
+        // Handler for drawing completion
+        map.on(L.Draw.Event.CREATED, function (event) {
+            const layer = event.layer;
+            drawnItems.addLayer(layer);
+        });
+
+        // Function to serialize drawn items to GeoJSON and display in textarea
+        function send() {
+            const geojsonData = drawnItems.toGeoJSON();
+            document.getElementById("geojson").value = JSON.stringify(geojsonData, null, 2);
+        }
+    </script>
+</body>
+</html>
