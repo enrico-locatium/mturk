@@ -8,65 +8,58 @@
     <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">    
 </head>
 <body>
-    <div>
-        <textarea id="geojson" style="width: 100%; height: 100px;"></textarea>
-        <button onclick="send()">Submit</button>
-    </div>
     <div id="map" style="width: 100%; height: 80vh; border: 1px solid #ccc"></div>
+    <!-- Removed the standalone button and textarea. Submission will now be part of a form -->
+    <form id="mturk-form" method="POST" action="">
+        <!-- This hidden field is crucial for MTurk to recognize the assignmentId -->
+        <input type="hidden" name="assignmentId" id="assignmentId" value="">
+        <!-- GeoJSON data will be populated into this hidden field upon submission -->
+        <input type="hidden" id="geojsonData" name="geojsonData" value="">
+        <input type="submit" value="Submit">
+    </form>
 
     <script>
-        // Parse the URL parameters for latitude, longitude, and zoom
-        const urlParams = new URLSearchParams(window.location.search);
-        const latitude = parseFloat(urlParams.get('latitude')) || 28.5207551327165; // Default latitude
-        const longitude = parseFloat(urlParams.get('longitude')) || -82.2339117214042; // Default longitude
-        const zoom = parseInt(urlParams.get('zoom'), 18) || 18; // Default zoom level
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            // MTurk uses "assignmentId" query parameter to pass the assignment ID
+            document.getElementById('assignmentId').value = urlParams.get('assignmentId') || '';
 
-        const map = L.map('map', {
-            center: [latitude, longitude],
-            zoom: zoom
-        });
+            // Set form action based on whether the task is running in the MTurk sandbox or the live environment
+            const formAction = urlParams.get('assignmentId') === 'ASSIGNMENT_ID_NOT_AVAILABLE' ? '#' :
+                                'https://workersandbox.mturk.com/mturk/externalSubmit'; // Change to https://www.mturk.com/mturk/externalSubmit for production
+            document.getElementById('mturk-form').action = formAction;
 
-        // Using OpenStreetMap tile layer; you can replace this with any compatible tile layer
-        L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        const drawnItems = new L.FeatureGroup();
-        map.addLayer(drawnItems);
-
-        // Add drawing controls to the map
-        const drawControl = new L.Control.Draw({
-            edit: {
-                featureGroup: drawnItems,
-                poly: {
-                    allowIntersection: false
+            // Initialize the map and drawing controls as before
+            const map = L.map('map', {
+                center: [parseFloat(urlParams.get('latitude')) || 28.5207551327165, parseFloat(urlParams.get('longitude')) || -82.2339117214042],
+                zoom: parseInt(urlParams.get('zoom'), 10) || 18
+            });
+            L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            const drawnItems = new L.FeatureGroup();
+            map.addLayer(drawnItems);
+            map.addControl(new L.Control.Draw({
+                edit: { featureGroup: drawnItems },
+                draw: {
+                    polyline: false,
+                    rectangle: false,
+                    circle: false,
+                    circlemarker: false,
+                    polygon: { allowIntersection: false, showArea: true }
                 }
-            },
-            draw: {
-                polyline: false,
-                rectangle: false,
-                circle: false,
-                circlemarker: false,
-                // Customize the Polygon options
-                polygon: {
-                    allowIntersection: false, // Restricts shapes to simple polygons
-                    showArea: true
-                }
-            }
-        });
-        map.addControl(drawControl);
+            }));
+            map.on(L.Draw.Event.CREATED, function (event) {
+                const layer = event.layer;
+                drawnItems.addLayer(layer);
+            });
 
-        // Handler for drawing completion
-        map.on(L.Draw.Event.CREATED, function (event) {
-            const layer = event.layer;
-            drawnItems.addLayer(layer);
+            // Adjust the send function to submit the form with the GeoJSON data
+            document.getElementById('mturk-form').onsubmit = function(e) {
+                const geojsonData = drawnItems.toGeoJSON();
+                document.getElementById('geojsonData').value = JSON.stringify(geojsonData);
+            };
         });
-
-        // Function to serialize drawn items to GeoJSON and display in textarea
-        function send() {
-            const geojsonData = drawnItems.toGeoJSON();
-            document.getElementById("geojson").value = JSON.stringify(geojsonData, null, 2);
-        }
     </script>
 </body>
 </html>
