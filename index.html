@@ -6,58 +6,69 @@
     <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">    
+    <style>
+        #map { height: 80vh; width: 100%; border: 1px solid #ccc; }
+    </style>
 </head>
 <body>
-    <div id="map" style="width: 100%; height: 80vh; border: 1px solid #ccc"></div>
-    <!-- Removed the standalone button and textarea. Submission will now be part of a form -->
+    <div id="map"></div>
     <form id="mturk-form" method="POST" action="">
-        <!-- This hidden field is crucial for MTurk to recognize the assignmentId -->
-        <input type="hidden" name="assignmentId" id="assignmentId" value="">
-        <!-- GeoJSON data will be populated into this hidden field upon submission -->
+        <input type="hidden" name="assignmentId" id="assignmentId" value="SIMULATED_ASSIGNMENT_ID_FOR_TESTING">
         <input type="hidden" id="geojsonData" name="geojsonData" value="">
         <input type="submit" value="Submit">
     </form>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            // MTurk uses "assignmentId" query parameter to pass the assignment ID
-            document.getElementById('assignmentId').value = urlParams.get('assignmentId') || '';
+            // Hardcoded assignmentId for testing
+            const assignmentId = 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
+            document.getElementById('assignmentId').value = assignmentId;
 
-            // Set form action based on whether the task is running in the MTurk sandbox or the live environment
-            const formAction = urlParams.get('assignmentId') === 'ASSIGNMENT_ID_NOT_AVAILABLE' ? '#' :
-                                'https://workersandbox.mturk.com/mturk/externalSubmit'; // Change to https://www.mturk.com/mturk/externalSubmit for production
-            document.getElementById('mturk-form').action = formAction;
-
-            // Initialize the map and drawing controls as before
+            // Initialize the map with a default view
             const map = L.map('map', {
-                center: [parseFloat(urlParams.get('latitude')) || 28.5207551327165, parseFloat(urlParams.get('longitude')) || -82.2339117214042],
-                zoom: parseInt(urlParams.get('zoom'), 10) || 18
+                center: [40.712776, -74.005974], // Default to New York City
+                zoom: 17
             });
-            L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
+
+            // Add a tile layer to the map (OpenStreetMap tiles are used here)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
+
+            // FeatureGroup is to store editable layers
             const drawnItems = new L.FeatureGroup();
             map.addLayer(drawnItems);
-            map.addControl(new L.Control.Draw({
+
+            // Add drawing controls to the map
+            const drawControl = new L.Control.Draw({
                 edit: { featureGroup: drawnItems },
                 draw: {
                     polyline: false,
-                    rectangle: false,
-                    circle: false,
-                    circlemarker: false,
-                    polygon: { allowIntersection: false, showArea: true }
+                    rectangle: true,
+                    circle: true,
+                    polygon: { allowIntersection: false, showArea: true },
+                    marker: true,
                 }
-            }));
+            });
+            map.addControl(drawControl);
+
+            // Event listener for when a new shape is drawn
             map.on(L.Draw.Event.CREATED, function (event) {
                 const layer = event.layer;
                 drawnItems.addLayer(layer);
+                // Update the hidden form field with the GeoJSON data
+                document.getElementById('geojsonData').value = JSON.stringify(drawnItems.toGeoJSON());
             });
 
-            // Adjust the send function to submit the form with the GeoJSON data
+            // Adjust the form submission for testing
             document.getElementById('mturk-form').onsubmit = function(e) {
-                const geojsonData = drawnItems.toGeoJSON();
-                document.getElementById('geojsonData').value = JSON.stringify(geojsonData);
+                e.preventDefault(); // Prevent the form from submitting to an actual server
+                // Log the GeoJSON data for demonstration purposes
+                console.log("GeoJSON Data:", document.getElementById('geojsonData').value);
+                
+                // Here you would typically send the data to your server for processing
+                // For this test script, we'll just show a confirmation
+                alert("Form submitted with GeoJSON data. Check the console for details.");
             };
         });
     </script>
