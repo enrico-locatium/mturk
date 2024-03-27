@@ -22,11 +22,11 @@
         document.addEventListener('DOMContentLoaded', function() {
 
             const urlParams = new URLSearchParams(window.location.search);
-            
-            // Hardcoded assignmentId for testing
-            const assignmentId = 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
-            document.getElementById('assignmentId').value = assignmentId;
 
+            // Hardcoded assignmentId for testing
+            const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
+            document.getElementById('assignmentId').value = assignmentId;
+            
             // Initialize the map with a default view
             const map = L.map('map', {
                 center: [parseFloat(urlParams.get('latitude')) || 28.5207551327165, parseFloat(urlParams.get('longitude')) || -82.2339117214042],
@@ -48,7 +48,7 @@
                 draw: {
                     polyline: false,
                     rectangle: false,
-                    circle: true,
+                    circle: false,
                     polygon: { allowIntersection: false, showArea: true },
                     marker: false,
                 }
