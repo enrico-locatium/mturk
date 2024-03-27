@@ -13,27 +13,30 @@
 <body>
     <div id="map"></div>
     <form id="mturk-form" method="POST" action="">
-        <input type="hidden" name="assignmentId" id="assignmentId" value="SIMULATED_ASSIGNMENT_ID_FOR_TESTING">
+        <input type="hidden" name="assignmentId" id="assignmentId" value="">
         <input type="hidden" id="geojsonData" name="geojsonData" value="">
         <input type="submit" value="Submit">
     </form>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-
             const urlParams = new URLSearchParams(window.location.search);
-
-            // Hardcoded assignmentId for testing
             const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
             document.getElementById('assignmentId').value = assignmentId;
-            
+
+            // Set the form action to submit directly to MTurk
+            const turkSubmitTo = urlParams.get('turkSubmitTo');
+            if (turkSubmitTo) {
+                document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
+            }
+
             // Initialize the map with a default view
             const map = L.map('map', {
                 center: [parseFloat(urlParams.get('latitude')) || 28.5207551327165, parseFloat(urlParams.get('longitude')) || -82.2339117214042],
                 zoom: parseInt(urlParams.get('zoom'), 10) || 18
             });
-            
-            // Add a tile layer to the map (OpenStreetMap tiles are used here)
+
+            // Add a tile layer to the map (GoogelMaps tiles are used here)
             L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
@@ -62,17 +65,6 @@
                 // Update the hidden form field with the GeoJSON data
                 document.getElementById('geojsonData').value = JSON.stringify(drawnItems.toGeoJSON());
             });
-
-            // Adjust the form submission for testing
-            document.getElementById('mturk-form').onsubmit = function(e) {
-                e.preventDefault(); // Prevent the form from submitting to an actual server
-                // Log the GeoJSON data for demonstration purposes
-                console.log("GeoJSON Data:", document.getElementById('geojsonData').value);
-                
-                // Here you would typically send the data to your server for processing
-                // For this test script, we'll just show a confirmation
-                alert("Form submitted with GeoJSON data. Check the console for details.");
-            };
         });
     </script>
 </body>
