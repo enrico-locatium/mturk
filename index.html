@@ -8,11 +8,32 @@
     <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">    
     <style>
         #map { height: 80vh; width: 100%; border: 1px solid #ccc; }
+        #instructions { margin: 20px; padding: 20px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; }
     </style>   
-    
-    
 </head>
 <body>
+    <div id="instructions">
+        <button id="toggleInstructions">Show Instructions</button>
+        <div id="instructionContent" style="display:none;">
+            <h2>Task Instructions</h2>
+            <p>Please follow the instructions below to complete the task:</p>
+            <ul>
+                <li><strong>Objective:</strong> Your task is to draw a polygon around the area/parcel of the marked gas station or truckstop on the map.</li>
+                <li><strong>Area to Include:</strong> Make sure to include all accessible areas connected to the gas station. This includes, but is not limited to:
+                    <ul>
+                        <li>Parking areas</li>
+                        <li>Convenience stores</li>
+                        <li>Repair shops</li>
+                    </ul>
+                </li>
+                <li><strong>Drawing Precision:</strong> Use the map's zoom function for better precision in your drawing. Ensure your polygon accurately covers the entire area of interest.</li>
+                <li><strong>Submission:</strong> Once you are satisfied with the polygon you have drawn, submit your work using the 'Submit' button below.</li>
+            </ul>
+            <p>If you have any questions or encounter any issues, please refer to the task guidelines or contact support.</p>
+        </div>
+    </div>
+    
+    
     <div id="map"></div>
     <form id="mturk-form" method="POST" action="">
         <input type="hidden" name="assignmentId" id="assignmentId" value="">
@@ -22,6 +43,20 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('toggleInstructions');
+            const instructionContent = document.getElementById('instructionContent');
+
+            toggleBtn.addEventListener('click', function() {
+                if(instructionContent.style.display === "none") {
+                    instructionContent.style.display = "block";
+                    toggleBtn.textContent = "Hide Instructions";
+                } else {
+                    instructionContent.style.display = "none";
+                    toggleBtn.textContent = "Show Instructions";
+                }
+            });
+
+            
             const urlParams = new URLSearchParams(window.location.search);
             const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
             document.getElementById('assignmentId').value = assignmentId;
@@ -38,9 +73,9 @@
                 zoom: parseInt(urlParams.get('zoom'), 10) || 18
             });
 
-            // Add a tile layer to the map (GoogelMaps tiles are used here)
-            L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
-                attribution: '&copy; OpenStreetMap contributors'
+            // Add an Esri satellite tile layer to the map
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
             }).addTo(map);
 
             // Add a marker at the center of the map
@@ -55,16 +90,15 @@
             const drawControl = new L.Control.Draw({
                 edit: { featureGroup: drawnItems },
                 draw: {
-                    polyline: false, // Disable polylines
-                    rectangle: false, // Disable rectangles
-                    circle: false, // Disable circles
-                    circlemarker: false, // Disable circle markers
-                    polygon: { allowIntersection: false, showArea: true }, // Enable polygons
-                    marker: false, // Disable markers
+                    polyline: false,
+                    rectangle: false,
+                    circle: false,
+                    circlemarker: false,
+                    polygon: { allowIntersection: false, showArea: true },
+                    marker: false,
                 }
             });
             map.addControl(drawControl);
-
 
             // Event listener for when a new shape is drawn
             map.on(L.Draw.Event.CREATED, function (event) {
