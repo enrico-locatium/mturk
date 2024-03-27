@@ -20,16 +20,19 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            const urlParams = new URLSearchParams(window.location.search);
+            
             // Hardcoded assignmentId for testing
             const assignmentId = 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
             document.getElementById('assignmentId').value = assignmentId;
 
             // Initialize the map with a default view
             const map = L.map('map', {
-                center: [40.712776, -74.005974], // Default to New York City
-                zoom: 17
+                center: [parseFloat(urlParams.get('latitude')) || 28.5207551327165, parseFloat(urlParams.get('longitude')) || -82.2339117214042],
+                zoom: parseInt(urlParams.get('zoom'), 10) || 18
             });
-
+            
             // Add a tile layer to the map (OpenStreetMap tiles are used here)
             L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
                 attribution: '&copy; OpenStreetMap contributors'
@@ -44,10 +47,10 @@
                 edit: { featureGroup: drawnItems },
                 draw: {
                     polyline: false,
-                    rectangle: true,
+                    rectangle: false,
                     circle: true,
                     polygon: { allowIntersection: false, showArea: true },
-                    marker: true,
+                    marker: false,
                 }
             });
             map.addControl(drawControl);
