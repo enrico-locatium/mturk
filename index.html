@@ -69,8 +69,8 @@
 
             // Initialize the map with a default view
             const map = L.map('map', {
-                center: [parseFloat(urlParams.get('latitude')) || 28.5207551327165, parseFloat(urlParams.get('longitude')) || -82.2339117214042],
-                zoom: parseInt(urlParams.get('zoom'), 10) || 18
+                center: [parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0],
+                zoom: parseInt(urlParams.get('zoom'), 10) || 10
             });
 
             // Add an Esri satellite tile layer to the map
