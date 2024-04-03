@@ -33,7 +33,6 @@
         </div>
     </div>
     
-    
     <div id="map"></div>
     <form id="mturk-form" method="POST" action="">
         <input type="hidden" name="assignmentId" id="assignmentId" value="">
@@ -56,37 +55,30 @@
                 }
             });
 
-            
             const urlParams = new URLSearchParams(window.location.search);
             const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
             document.getElementById('assignmentId').value = assignmentId;
 
-            // Set the form action to submit directly to MTurk
             const turkSubmitTo = urlParams.get('turkSubmitTo');
             if (turkSubmitTo) {
                 document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
             }
 
-            // Initialize the map with a default view
             const map = L.map('map', {
                 center: [parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0],
                 zoom: parseInt(urlParams.get('zoom'), 10) || 10
             });
 
-            // Add an Esri satellite tile layer to the map
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
             }).addTo(map);
 
-            // Add a marker at the center of the map
             const centerPoint = map.getCenter();
             L.marker(centerPoint).addTo(map);
 
-            // FeatureGroup is to store editable layers
             const drawnItems = new L.FeatureGroup();
             map.addLayer(drawnItems);
 
-            // Add drawing controls to the map with only polygon option enabled
             const drawControl = new L.Control.Draw({
                 edit: { featureGroup: drawnItems },
                 draw: {
@@ -100,12 +92,18 @@
             });
             map.addControl(drawControl);
 
-            // Event listener for when a new shape is drawn
             map.on(L.Draw.Event.CREATED, function (event) {
                 const layer = event.layer;
                 drawnItems.addLayer(layer);
-                // Update the hidden form field with the GeoJSON data
                 document.getElementById('geojsonData').value = JSON.stringify(drawnItems.toGeoJSON());
+            });
+
+            document.getElementById('mturk-form').addEventListener('submit', function(event) {
+                const geojsonData = document.getElementById('geojsonData').value;
+                if (!geojsonData || geojsonData === '{}') {
+                    alert('Please draw a polygon on the map before submitting.');
+                    event.preventDefault(); // Prevent form submission
+                }
             });
         });
     </script>
