@@ -223,6 +223,7 @@
                                 const layer = event.layer;
                                 drawnItems.addLayer(layer);
                                 geojsons[mapName] = drawnItems.toGeoJSON();
+                                geojsons[mapName]["features"][0]["properties"]["area"] = parseInt(L.GeometryUtil.geodesicArea(layer.getLatLngs()[0]));
                             });
                         }
 
