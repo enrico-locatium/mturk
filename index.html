@@ -1,115 +1,196 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Mechanical Turk Map Task</title>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">    
-    <style>
-        #map { height: 80vh; width: 100%; border: 1px solid #ccc; }
-        #instructions { margin: 20px; padding: 20px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; }
-    </style>   
-</head>
-<body>
-    <div id="instructions">
-        <h2>Draw the area of the gas station on the map </h2>
-        <h3>Include any store and parking, truck stops, etc</h3>
-        <h2>Example: </h2>
-        <img src="example.png" alt="Map Drawing Instructions" style="max-width:100%; height:auto;">
-        <button id="toggleInstructions">Show More Details</button>
-        <div id="instructionContent" style="display:none;">
-            <h2>Task Instructions</h2>
-            <p>Please follow the instructions below to complete the task:</p>
-            <ul>
-                <li><strong>Objective:</strong> Your task is to draw a polygon around the area/parcel of the marked gas station or truckstop on the map.</li>
-                <li><strong>Area to Include:</strong> Make sure to include all accessible areas connected to the gas station. This includes, but is not limited to:
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Mechanical Turk Map Task</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">
+        <style>
+            .map { height: 80vh; width: 100%; }
+            a { text-decoration: none; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="offcanvas offcanvas-start show" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="offcanvasLabel">Task Instructions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <h2>Draw the elements of a gas station on the map</h2>
+                    <p>Please follow the instructions below to complete the task:</p>
                     <ul>
-                        <li>Parking areas</li>
-                        <li>Convenience stores</li>
-                        <li>Repair shops</li>
+                        <li><strong>Objective:</strong> Your task is to draw polygons around different areas (parcel, convenience store, truck canopy and retail canopy) of the marked gas station or truckstop on the map.</li>
+                        <li><strong>Drawing Precision:</strong> Use the map's zoom function for better precision in your drawing. Ensure your polygon accurately covers the entire area of interest in each case.</li>
+                        <li><strong>Submission:</strong> Once you are satisfied with the polygons you have drawn, submit your work using the 'Submit' button below.</li>
                     </ul>
-                </li>
-                <li><strong>Drawing Precision:</strong> Use the map's zoom function for better precision in your drawing. Ensure your polygon accurately covers the entire area of interest.</li>
-                <li><strong>Submission:</strong> Once you are satisfied with the polygon you have drawn, submit your work using the 'Submit' button below.</li>
-            </ul>
-            <p>If you have any questions or encounter any issues, please refer to the task guidelines or contact support.</p>
+                    <p>If you have any questions or encounter any issues, please refer to the task guidelines or contact support.</p>
+                </div>
+            </div>
+            <nav class="navbar navbar-expand-lg bg-body-tertiary">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">Draw the elements of a gas station on the map</a>
+                    <button class="btn btn-outline-success" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas">Instructions</button>
+                </div>
+            </nav>
+            <div class="row">
+                <div class="col-3">
+                    <div class="accordion sticky-top" id="accordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><a href="#parcel_map_row"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Parcel</button></a></h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordion">
+                                <div class="accordion-body">
+                                    <p><strong>Draw a polygon around the parcel that contains the gas station.</strong> Make sure to include all accessible areas connected to the gas station. This includes, but is not limited to:</p>
+                                    <ul>
+                                        <li>Parking areas</li>
+                                        <li>Convenience stores</li>
+                                        <li>Repair shops</li>
+                                    </ul>
+                                    <img src="parcel.png" class="img-fluid" alt="Parcel drawing instructions" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><a href="#cstore_map_row"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">Convenience store</button></a></h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordion">
+                                <div class="accordion-body">
+                                    <p><strong>Draw a polygon around the convenience store found at the gas station.</strong>
+                                    <img src="cstore.png" class="img-fluid" alt="Convenience store drawing instructions" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><a href="#retail_map_row"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">Retain canopy</button></a></h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordion">
+                                <div class="accordion-body">
+                                    <p><strong>Draw a polygon around the retail canopy found at the gas station.</strong></p>
+                                    <img src="retail.png" class="img-fluid" alt="Retail canopy drawing instructions" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><a href="#truck_map_row"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">Truck canopy</button></a></h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordion">
+                                <div class="accordion-body">
+                                    <p><strong>Draw a polygon around the truck canopy found at the gas station.</strong></p>
+                                    <img src="truck.png" class="img-fluid" alt="Truck canopy drawing instructions" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">Submit task</button></h2>
+                            <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordion">
+                                <div class="accordion-body">
+                                    <p><strong>Finalize the task by clicking at the submit button.</strong>
+                                    <form id="mturk-form" class="text-center" method="POST" action="">
+                                        <input type="hidden" name="assignmentId" id="assignmentId" value="">
+                                        <input type="hidden" id="geojsonData" name="geojsonData" value="">
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div id="parcel_map_row" class="row">
+                        <div class="col">
+                            <h3>Parcel</h3>
+                            <div id="parcel_map" class="map"></div>
+                        </div>
+                    </div>
+                    <div id="cstore_map_row" class="row">
+                        <div class="col">
+                            <h3>Convenience store</h3>
+                            <div id="cstore_map" class="map"></div>
+                        </div>
+                    </div>
+                    <div id="retail_map_row" class="row">
+                        <div class="col">
+                            <h3>Retail canopy</h3>
+                            <div id="retail_map" class="map"></div>
+                        </div>
+                    </div>
+                    <div id="truck_map_row" class="row">
+                        <div class="col">
+                            <h3>Truck canopy</h3>
+                            <div id="truck_map" class="map"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    
-    <div id="map"></div>
-    <form id="mturk-form" method="POST" action="">
-        <input type="hidden" name="assignmentId" id="assignmentId" value="">
-        <input type="hidden" id="geojsonData" name="geojsonData" value="">
-        <input type="submit" value="Submit">
-    </form>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const mapNames = ["parcel", "cstore", "retail", "truck"];
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggleBtn = document.getElementById('toggleInstructions');
-            const instructionContent = document.getElementById('instructionContent');
+                const urlParams = new URLSearchParams(window.location.search);
+                const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
+                document.getElementById('assignmentId').value = assignmentId;
 
-            toggleBtn.addEventListener('click', function() {
-                if(instructionContent.style.display === "none") {
-                    instructionContent.style.display = "block";
-                    toggleBtn.textContent = "Hide Instructions";
-                } else {
-                    instructionContent.style.display = "none";
-                    toggleBtn.textContent = "Show Instructions";
+                const turkSubmitTo = urlParams.get('turkSubmitTo');
+                if (turkSubmitTo) {
+                    document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
                 }
-            });
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
-            document.getElementById('assignmentId').value = assignmentId;
+                const maps = {};
+                const geojsons = {};
+                for (let mapName of mapNames) {
+                    maps[mapName] = L.map(`${mapName}_map`, {
+                        center: [parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0],
+                        zoom: parseInt(urlParams.get('zoom'), 10) || 10
+                    });
 
-            const turkSubmitTo = urlParams.get('turkSubmitTo');
-            if (turkSubmitTo) {
-                document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
-            }
+                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                    }).addTo(maps[mapName]);
 
-            const map = L.map('map', {
-                center: [parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0],
-                zoom: parseInt(urlParams.get('zoom'), 10) || 10
-            });
+                    const centerPoint = maps[mapName].getCenter();
+                    L.marker(centerPoint).addTo(maps[mapName]);
 
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-            }).addTo(map);
+                    const drawnItems = new L.FeatureGroup();
+                    maps[mapName].addLayer(drawnItems);
 
-            const centerPoint = map.getCenter();
-            L.marker(centerPoint).addTo(map);
+                    const drawControl = new L.Control.Draw({
+                        edit: { featureGroup: drawnItems },
+                        draw: {
+                            polyline: false,
+                            rectangle: false,
+                            circle: false,
+                            circlemarker: false,
+                            polygon: { allowIntersection: false, showArea: true },
+                            marker: false,
+                        }
+                    });
+                    maps[mapName].addControl(drawControl);
 
-            const drawnItems = new L.FeatureGroup();
-            map.addLayer(drawnItems);
-
-            const drawControl = new L.Control.Draw({
-                edit: { featureGroup: drawnItems },
-                draw: {
-                    polyline: false,
-                    rectangle: false,
-                    circle: false,
-                    circlemarker: false,
-                    polygon: { allowIntersection: false, showArea: true },
-                    marker: false,
+                    maps[mapName].on(L.Draw.Event.CREATED, function (event) {
+                        const layer = event.layer;
+                        drawnItems.addLayer(layer);
+                        geojsons[mapName] = drawnItems.toGeoJSON();
+                    });
                 }
-            });
-            map.addControl(drawControl);
 
-            map.on(L.Draw.Event.CREATED, function (event) {
-                const layer = event.layer;
-                drawnItems.addLayer(layer);
-                document.getElementById('geojsonData').value = JSON.stringify(drawnItems.toGeoJSON());
-            });
-
-            document.getElementById('mturk-form').addEventListener('submit', function(event) {
-                const geojsonData = document.getElementById('geojsonData').value;
-                if (!geojsonData || geojsonData === '{}') {
-                    alert('Please draw a polygon on the map before submitting.');
+                document.getElementById('mturk-form').addEventListener('submit', function(event) {
                     event.preventDefault(); // Prevent form submission
-                }
+
+                    const geojson = {"type": "FeatureCollection", "features": []};
+                    for (let mapName of mapNames) {
+                        if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
+                            const feature = geojsons[mapName]["features"][0];
+                            feature["id"] = mapName;
+                            geojson.features.push(feature);
+                        }
+                    }
+                    document.getElementById('geojsonData').value = JSON.stringify(geojson);
+                });
             });
-        });
-    </script>
-</body>
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    </body>
 </html>
