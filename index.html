@@ -11,7 +11,7 @@
         <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">
         <style>
             .map { height: 80vh; width: 100%; }
-            a { text-decoration: none; }
+            body { padding-top: 80px; }
         </style>
     </head>
     <body>
@@ -40,99 +40,95 @@
                     <p>Please follow the instructions below to complete the task:</p>
                     <ul>
                         <li><strong>Objective:</strong> Your task is to draw polygons around different areas (parcel, convenience store, truck canopy and retail canopy) of the marked gas station or truckstop on the map.</li>
-                        <li><strong>Drawing Precision:</strong> Use the map's zoom function for better precision in your drawing. Ensure your polygon accurately covers the entire area of interest in each case.</li>
-                        <li><strong>Submission:</strong> Once you are satisfied with the polygons you have drawn, submit your work using the 'Submit' button below.</li>
+                        <li><strong>Drawing precision:</strong> Use the map's zoom function for better precision in your drawing. Ensure your polygon accurately covers the entire area of interest in each case.</li>
+                        <li><strong>Submission:</strong> Once you are satisfied with the polygons you have drawn, submit your work using the 'Submit' button.</li>
                     </ul>
                     <p>If you have any questions or encounter any issues, please refer to the task guidelines or contact support.</p>
                 </div>
             </div>
-            <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <nav class="navbar fixed-top bg-body-tertiary">
                 <div class="container-fluid">
                     <a class="navbar-brand" href="#">Draw the elements of a gas station on the map</a>
-                    <button class="btn btn-outline-success" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas">Instructions</button>
+                    <form id="mturk-form" class="text-center" method="POST" action="">
+                        <input type="hidden" name="assignmentId" id="assignmentId" value="">
+                        <input type="hidden" id="geojsonData" name="geojsonData" value="">
+                        <button class="btn btn-outline-success" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas">Instructions</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
                 </div>
             </nav>
-            <div class="row">
+            <div class="row mb-2">
                 <div class="col-3">
-                    <div class="accordion sticky-top" id="accordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header"><a href="#parcel_map_row"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Parcel</button></a></h2>
-                            <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordion">
-                                <div class="accordion-body">
-                                    <p><strong>Draw a polygon around the parcel that contains the gas station.</strong> Make sure to include all accessible areas connected to the gas station. This includes, but is not limited to:</p>
-                                    <ul>
-                                        <li>Parking areas</li>
-                                        <li>Convenience stores</li>
-                                        <li>Repair shops</li>
-                                    </ul>
-                                    <img src="parcel.png" class="img-fluid" alt="Parcel drawing instructions" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header"><a href="#cstore_map_row"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">Convenience store</button></a></h2>
-                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordion">
-                                <div class="accordion-body">
-                                    <p><strong>Draw a polygon around the convenience store found at the gas station.</strong>
-                                    <img src="cstore.png" class="img-fluid" alt="Convenience store drawing instructions" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header"><a href="#retail_map_row"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">Retain canopy</button></a></h2>
-                            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordion">
-                                <div class="accordion-body">
-                                    <p><strong>Draw a polygon around the retail canopy found at the gas station.</strong></p>
-                                    <img src="retail.png" class="img-fluid" alt="Retail canopy drawing instructions" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header"><a href="#truck_map_row"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">Truck canopy</button></a></h2>
-                            <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordion">
-                                <div class="accordion-body">
-                                    <p><strong>Draw a polygon around the truck canopy found at the gas station.</strong></p>
-                                    <img src="truck.png" class="img-fluid" alt="Truck canopy drawing instructions" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">Submit task</button></h2>
-                            <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordion">
-                                <div class="accordion-body">
-                                    <p><strong>Finalize the task by clicking at the submit button.</strong>
-                                    <form id="mturk-form" class="text-center" method="POST" action="">
-                                        <input type="hidden" name="assignmentId" id="assignmentId" value="">
-                                        <input type="hidden" id="geojsonData" name="geojsonData" value="">
-                                        <button type="submit" class="btn btn-primary">Submit</button>
-                                    </form>
-                                </div>
-                            </div>
+                    <div class="card">
+                        <img src="parcel.png" class="card-img-top" alt="Parcel drawing instructions">
+                        <div class="card-body">
+                            <h5 class="card-title">Parcel</h5>
+                            <p class="card-text"><strong>Draw a polygon around the parcel that contains the gas station.</strong> Make sure to include all accessible areas connected to the gas station. This includes, but is not limited to:</p>
+                            <ul>
+                                <li>Parking areas</li>
+                                <li>Convenience stores</li>
+                                <li>Repair shops</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div id="parcel_map_row" class="row">
-                        <div class="col">
-                            <h3>Parcel</h3>
+                    <div class="card">
+                        <div class="card-body">
                             <div id="parcel_map" class="map"></div>
                         </div>
                     </div>
-                    <div id="cstore_map_row" class="row">
-                        <div class="col">
-                            <h3>Convenience store</h3>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-3">
+                    <div class="card">
+                        <img src="cstore.png" class="card-img-top" alt="Convenience store drawing instructions">
+                        <div class="card-body">
+                            <h5 class="card-title">Convenience store</h5>
+                            <p class="card-text"><strong>Draw a polygon around the convenience store found at the gas station.</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
                             <div id="cstore_map" class="map"></div>
                         </div>
                     </div>
-                    <div id="retail_map_row" class="row">
-                        <div class="col">
-                            <h3>Retail canopy</h3>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-3">
+                    <div class="card">
+                        <img src="retail.png" class="card-img-top" alt="Retail canopy drawing instructions">
+                        <div class="card-body">
+                            <h5 class="card-title">Retail canopy</h5>
+                            <p class="card-text"><strong>Draw a polygon around the retail canopy found at the gas station.</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
                             <div id="retail_map" class="map"></div>
                         </div>
                     </div>
-                    <div id="truck_map_row" class="row">
-                        <div class="col">
-                            <h3>Truck canopy</h3>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-3">
+                    <div class="card">
+                        <img src="truck.png" class="card-img-top" alt="Truck canopy drawing instructions">
+                        <div class="card-body">
+                            <h5 class="card-title">Truck canopy</h5>
+                            <p class="card-text"><strong>Draw a polygon around the truck canopy found at the gas station.</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
                             <div id="truck_map" class="map"></div>
                         </div>
                     </div>
@@ -195,7 +191,7 @@
                     const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
 
                     if (!geojsons["parcel"]) {
-                        document.querySelector(".modal-body").innerHTML = "Parcel polygon cannot be missing.";
+                        document.querySelector(".modal-body").innerHTML = "Task is incomplete so it cannot be submitted.";
                         errorModal.show();
                     } else {
                         const geojson = {"type": "FeatureCollection", "features": []};
