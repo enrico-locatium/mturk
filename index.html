@@ -104,7 +104,7 @@
                         <img src="retail.png" class="card-img-top" alt="Retail canopy drawing instructions">
                         <div class="card-body">
                             <h5 class="card-title">Retail canopy</h5>
-                            <p class="card-text"><strong>Draw a polygon around the retail canopy found at the gas station.</strong>
+                            <p class="card-text"><strong>Draw a polygon around the retail canopy found at the gas station.</strong> Hint: use the location of cars, if available, to help you find the correct canopy element.
                         </div>
                     </div>
                 </div>
@@ -122,7 +122,7 @@
                         <img src="truck.png" class="card-img-top" alt="Truck canopy drawing instructions">
                         <div class="card-body">
                             <h5 class="card-title">Truck canopy</h5>
-                            <p class="card-text"><strong>Draw a polygon around the truck canopy found at the gas station.</strong>
+                            <p class="card-text"><strong>Draw a polygon around the truck canopy found at the gas station.</strong> Hint: use the location of trucks, if available, to help you find the correct canopy element.
                         </div>
                     </div>
                 </div>
@@ -153,7 +153,8 @@
                 for (let mapName of mapNames) {
                     maps[mapName] = L.map(`${mapName}_map`, {
                         center: [parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0],
-                        zoom: parseInt(urlParams.get('zoom'), 10) || 10
+                        zoom: parseInt(urlParams.get('zoom'), 10) || 10,
+                        maxZoom: 20
                     });
 
                     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
