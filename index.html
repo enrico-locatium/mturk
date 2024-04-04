@@ -136,76 +136,86 @@
             </div>
         </div>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const mapNames = ["parcel", "cstore", "retail", "truck"];
+            document.addEventListener('DOMContentLoaded', () => {
+                const googleMapTilesAPIKey = "AIzaSyBbB7HvAxs8K4y9EAylPRfQ6lmq4fsZK_M";
 
-                const urlParams = new URLSearchParams(window.location.search);
-                const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
-                document.getElementById('assignmentId').value = assignmentId;
+                fetch(`https://tile.googleapis.com/v1/createSession?key=${googleMapTilesAPIKey}`, {
+                    method: "POST",
+                    body: JSON.stringify({"mapType": "satellite", "language": "en-US", "region": "US"}),
+                    headers: {"Content-type": "application/json; charset=UTF-8"}
+                    })
+                    .then((response) => response.json())
+                    .then((json) => json.session)
+                    .then((googleMapTilesAPIToken) => {
+                        const mapNames = ["parcel", "cstore", "retail", "truck"];
 
-                const turkSubmitTo = urlParams.get('turkSubmitTo');
-                if (turkSubmitTo) {
-                    document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
-                }
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
+                        document.getElementById('assignmentId').value = assignmentId;
 
-                const maps = {};
-                const geojsons = {};
-                for (let mapName of mapNames) {
-                    maps[mapName] = L.map(`${mapName}_map`, {
-                        center: [parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0],
-                        zoom: parseInt(urlParams.get('zoom'), 10) || 10,
-                        maxZoom: 20
-                    });
-
-                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                    }).addTo(maps[mapName]);
-
-                    const centerPoint = maps[mapName].getCenter();
-                    L.marker(centerPoint).addTo(maps[mapName]);
-
-                    const drawnItems = new L.FeatureGroup();
-                    maps[mapName].addLayer(drawnItems);
-
-                    const drawControl = new L.Control.Draw({
-                        edit: { featureGroup: drawnItems },
-                        draw: {
-                            polyline: false,
-                            rectangle: false,
-                            circle: false,
-                            circlemarker: false,
-                            polygon: { allowIntersection: false, showArea: true },
-                            marker: false,
+                        const turkSubmitTo = urlParams.get('turkSubmitTo');
+                        if (turkSubmitTo) {
+                            document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
                         }
-                    });
-                    maps[mapName].addControl(drawControl);
 
-                    maps[mapName].on(L.Draw.Event.CREATED, function (event) {
-                        const layer = event.layer;
-                        drawnItems.addLayer(layer);
-                        geojsons[mapName] = drawnItems.toGeoJSON();
-                    });
-                }
-
-                document.getElementById('mturk-form').addEventListener('submit', function(event) {
-                    event.preventDefault(); // Prevent form submission
-                    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-
-                    if (!geojsons["parcel"]) {
-                        document.querySelector(".modal-body").innerHTML = "Task is incomplete so it cannot be submitted.";
-                        errorModal.show();
-                    } else {
-                        const geojson = {"type": "FeatureCollection", "features": []};
+                        const maps = {};
+                        const geojsons = {};
                         for (let mapName of mapNames) {
-                            if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
-                                const feature = geojsons[mapName]["features"][0];
-                                feature["id"] = mapName;
-                                geojson.features.push(feature);
-                            }
+                            maps[mapName] = L.map(`${mapName}_map`, {
+                                center: [parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0],
+                                zoom: parseInt(urlParams.get('zoom')) || 18,
+                                minZoom: 18,
+                                maxZoom: 21
+                            });
+
+                            L.tileLayer(`https://tile.googleapis.com/v1/2dtiles/{z}/{x}/{y}?session=${googleMapTilesAPIToken}&key=${googleMapTilesAPIKey}`, {maxZoom: 21}).addTo(maps[mapName]);
+
+                            const centerPoint = maps[mapName].getCenter();
+                            L.marker(centerPoint).addTo(maps[mapName]);
+
+                            const drawnItems = new L.FeatureGroup();
+                            maps[mapName].addLayer(drawnItems);
+
+                            const drawControl = new L.Control.Draw({
+                                edit: { featureGroup: drawnItems },
+                                draw: {
+                                    polyline: false,
+                                    rectangle: false,
+                                    circle: false,
+                                    circlemarker: false,
+                                    polygon: { allowIntersection: false, showArea: true },
+                                    marker: false,
+                                }
+                            });
+                            maps[mapName].addControl(drawControl);
+
+                            maps[mapName].on(L.Draw.Event.CREATED, (event) => {
+                                const layer = event.layer;
+                                drawnItems.addLayer(layer);
+                                geojsons[mapName] = drawnItems.toGeoJSON();
+                            });
                         }
-                        document.getElementById('geojsonData').value = JSON.stringify(geojson);
-                    }
-                });
+
+                        document.getElementById('mturk-form').addEventListener('submit', (event) => {
+                            event.preventDefault(); // Prevent form submission
+                            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+
+                            if (!geojsons["parcel"]) {
+                                document.querySelector(".modal-body").innerHTML = "Task is incomplete so it cannot be submitted.";
+                                errorModal.show();
+                            } else {
+                                const geojson = {"type": "FeatureCollection", "features": []};
+                                for (let mapName of mapNames) {
+                                    if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
+                                        const feature = geojsons[mapName]["features"][0];
+                                        feature["id"] = mapName;
+                                        geojson.features.push(feature);
+                                    }
+                                }
+                                document.getElementById('geojsonData').value = JSON.stringify(geojson);
+                            }
+                        });
+                    });
             });
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
