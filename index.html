@@ -201,8 +201,19 @@
                             event.preventDefault(); // Prevent form submission
                             const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
 
+                            let error = false;
                             if (!geojsons["parcel"]) {
-                                document.querySelector(".modal-body").innerHTML = "Task is incomplete so it cannot be submitted.";
+                                error = true;
+                            } else if (geojsons["parcel"]["features"][0]["properties"]["area"] < 500 || geojsons["parcel"]["features"][0]["properties"]["area"] > 200000) {
+                                error = true;
+                            } else if (geojsons["retail"] && (geojsons["retail"]["features"][0]["properties"]["area"] < 20 || geojsons["retail"]["features"][0]["properties"]["area"] > 4000)) {
+                                error = true;
+                            } else if (geojsons["truck"] && (geojsons["truck"]["features"][0]["properties"]["area"] < 20 || geojsons["truck"]["features"][0]["properties"]["area"] > 2500)) {
+                                error = true;
+                            }
+
+                            if (error) {
+                                document.querySelector(".modal-body").innerHTML = "Task is incorrect or incomplete so it cannot be submitted.";
                                 errorModal.show();
                             } else {
                                 const geojson = {"type": "FeatureCollection", "features": []};
