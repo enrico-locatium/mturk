@@ -15,6 +15,20 @@
         </style>
     </head>
     <body>
+        <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="errorModalLabel">Error</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="container">
             <div class="offcanvas offcanvas-start show" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
                 <div class="offcanvas-header">
@@ -178,16 +192,22 @@
 
                 document.getElementById('mturk-form').addEventListener('submit', function(event) {
                     event.preventDefault(); // Prevent form submission
+                    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
 
-                    const geojson = {"type": "FeatureCollection", "features": []};
-                    for (let mapName of mapNames) {
-                        if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
-                            const feature = geojsons[mapName]["features"][0];
-                            feature["id"] = mapName;
-                            geojson.features.push(feature);
+                    if (!geojsons["parcel"]) {
+                        document.querySelector(".modal-body").innerHTML = "Parcel polygon cannot be missing.";
+                        errorModal.show();
+                    } else {
+                        const geojson = {"type": "FeatureCollection", "features": []};
+                        for (let mapName of mapNames) {
+                            if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
+                                const feature = geojsons[mapName]["features"][0];
+                                feature["id"] = mapName;
+                                geojson.features.push(feature);
+                            }
                         }
+                        document.getElementById('geojsonData').value = JSON.stringify(geojson);
                     }
-                    document.getElementById('geojsonData').value = JSON.stringify(geojson);
                 });
             });
         </script>
