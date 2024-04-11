@@ -9,6 +9,7 @@
         <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.js"></script>
         <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">
+        <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
         <style>
             .map { height: 80vh; width: 100%; }
             body { padding-top: 80px; }
@@ -158,11 +159,12 @@
                             document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
                         }
 
+                        const truckstopOrigin = L.latLng(parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0);
                         const maps = {};
                         const geojsons = {};
                         for (let mapName of mapNames) {
                             maps[mapName] = L.map(`${mapName}_map`, {
-                                center: [parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0],
+                                center: truckstopOrigin,
                                 zoom: parseInt(urlParams.get('zoom')) || 18,
                                 minZoom: 18,
                                 maxZoom: 21
@@ -203,6 +205,8 @@
 
                             let error = false;
                             if (!geojsons["parcel"]) {
+                                error = true;
+                            } else if (!turf.booleanPointInPolygon(turf.point([truckstopOrigin.lng, truckstopOrigin.lat]), turf.polygon(geojsons["parcel"]["features"][0]["geometry"]["coordinates"]))) {
                                 error = true;
                             } else if (geojsons["parcel"]["features"][0]["properties"]["area"] < 500 || geojsons["parcel"]["features"][0]["properties"]["area"] > 200000) {
                                 error = true;
