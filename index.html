@@ -148,6 +148,7 @@
                     .then((response) => response.json())
                     .then((json) => json.session)
                     .then((googleMapTilesAPIToken) => {
+                        const maxDistanceFromTruckstopOriginKm = 0.4;
                         const mapNames = ["parcel", "cstore", "retail", "truck"];
 
                         const urlParams = new URLSearchParams(window.location.search);
@@ -203,14 +204,21 @@
                             event.preventDefault(); // Prevent form submission
                             const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
 
+                            const truckstopOriginTurf = turf.point([truckstopOrigin.lng, truckstopOrigin.lat]);
                             let error = false;
                             if (!geojsons["parcel"]) {
                                 error = true;
-                            } else if (!turf.booleanPointInPolygon(turf.point([truckstopOrigin.lng, truckstopOrigin.lat]), turf.polygon(geojsons["parcel"]["features"][0]["geometry"]["coordinates"]))) {
+                            } else if (!turf.booleanPointInPolygon(truckstopOriginTurf, turf.polygon(geojsons["parcel"]["features"][0]["geometry"]["coordinates"]))) {
                                 error = true;
                             } else if (geojsons["parcel"]["features"][0]["properties"]["area"] < 500 || geojsons["parcel"]["features"][0]["properties"]["area"] > 200000) {
                                 error = true;
+                            } else if (geojsons["cstore"] && turf.pointToLineDistance(truckstopOriginTurf, turf.polygonToLine(turf.polygon(geojsons["cstore"]["features"][0]["geometry"]["coordinates"]))) > maxDistanceFromTruckstopOriginKm) {
+                                error = true;
+                            } else if (geojsons["retail"] && turf.pointToLineDistance(truckstopOriginTurf, turf.polygonToLine(turf.polygon(geojsons["retail"]["features"][0]["geometry"]["coordinates"]))) > maxDistanceFromTruckstopOriginKm) {
+                                error = true;
                             } else if (geojsons["retail"] && (geojsons["retail"]["features"][0]["properties"]["area"] < 20 || geojsons["retail"]["features"][0]["properties"]["area"] > 4000)) {
+                                error = true;
+                            } else if (geojsons["truck"] && turf.pointToLineDistance(truckstopOriginTurf, turf.polygonToLine(turf.polygon(geojsons["truck"]["features"][0]["geometry"]["coordinates"]))) > maxDistanceFromTruckstopOriginKm) {
                                 error = true;
                             } else if (geojsons["truck"] && (geojsons["truck"]["features"][0]["properties"]["area"] < 20 || geojsons["truck"]["features"][0]["properties"]["area"] > 2500)) {
                                 error = true;
