@@ -9,6 +9,7 @@
         <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.js"></script>
         <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">
+        <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
         <style>
             .map { height: 80vh; width: 100%; }
             body { padding-top: 80px; }
@@ -100,11 +101,7 @@
                         <img src="cstore.png" class="card-img-top" alt="Convenience store drawing instructions">
                         <div class="card-body">
                             <h5 class="card-title">Convenience store</h5>
-                            <p class="card-text"><strong>Draw a polygon on the convenience store found at the gas station. </strong> 
-                            </p>
-                            <ul>
-                                <li>The building of the convenience store is is typically located not far from the entrance of the station and close to the canopy where cars refuel.
-                            </ul>
+                            <p class="card-text"><strong>Draw a polygon around the convenience store found at the gas station.</strong>
                         </div>
                     </div>
                 </div>
@@ -121,13 +118,8 @@
                     <div class="card">
                         <img src="retail.png" class="card-img-top" alt="Fuel canopy drawing instructions">
                         <div class="card-body">
-                            <h5 class="card-title">Retail/cars canopy</h5>
-                            <p class="card-text"><strong>Draw a polygon on the cars fuel canopy found at the gas station.</strong> 
-                            </p>
-                            <ul>
-                                <li>This canopy is the main canopy where cars refuel. 
-                                <li>It typically consists of a rectangular roof structure located in the proximity of the convenience store facing the main road.
-                            </ul>
+                            <h5 class="card-title">Retail canopy</h5>
+                            <p class="card-text"><strong>Draw a polygon around the retail canopy found at the gas station.</strong> Hint: use the location of cars, if available, to help you find the correct canopy element.
                         </div>
                     </div>
                 </div>
@@ -145,14 +137,7 @@
                         <img src="truck.png" class="card-img-top" alt="Truck canopy drawing instructions">
                         <div class="card-body">
                             <h5 class="card-title">Truck canopy</h5>
-                            <p class="card-text"><strong>Draw a polygon around the truck/diesel canopy found at the gas station.</strong> 
-                            </p>
-                            <ul>
-                                <li>This canopy contains truck-dedicated fuel pumps. 
-                                <li>It appears as a rectangular roof structure and it tends to be located on the back of the convenice stores, although sometimes it is found on the side of the store. 
-                                <li><strong>NOTE: Large truckstops might have the truck canopy located a bit further on the backside of the station </strong>  
-                                <li>Hint: use the location of trucks, if available, to help you find the correct canopy element
-                            </ul>
+                            <p class="card-text"><strong>Draw a polygon around the truck canopy found at the gas station.</strong> Hint: use the location of trucks, if available, to help you find the correct canopy element.
                         </div>
                     </div>
                 </div>
@@ -167,90 +152,109 @@
         </div>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                const mapNames = ["parcel", "cstore", "retail", "truck"];
-            
-                const urlParams = new URLSearchParams(window.location.search);
-                const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
-                document.getElementById('assignmentId').value = assignmentId;
-            
-                const turkSubmitTo = urlParams.get('turkSubmitTo');
-                if (turkSubmitTo) {
-                    document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
-                }
-            
-                const maps = {};
-                const geojsons = {};
-                for (let mapName of mapNames) {
-                    maps[mapName] = L.map(`${mapName}_map`, {
-                        center: [parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0],
-                        zoom: parseInt(urlParams.get('zoom')) || 18,
-                        minZoom: 15,
-                        maxZoom: 18
-                    });
-            
-                    // Use OpenStreetMap tiles
-                    L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(maps[mapName]);
-                    
-                    const centerPoint = maps[mapName].getCenter();
-                    L.marker(centerPoint).addTo(maps[mapName]);
-            
-                    const drawnItems = new L.FeatureGroup();
-                    maps[mapName].addLayer(drawnItems);
-            
-                    const drawControl = new L.Control.Draw({
-                        edit: { featureGroup: drawnItems },
-                        draw: {
-                            polyline: false,
-                            rectangle: false,
-                            circle: false,
-                            circlemarker: false,
-                            polygon: { allowIntersection: false, showArea: true },
-                            marker: false,
+                const googleMapTilesAPIKey = "AIzaSyBbB7HvAxs8K4y9EAylPRfQ6lmq4fsZK_M";
+
+                fetch(`https://tile.googleapis.com/v1/createSession?key=${googleMapTilesAPIKey}`, {
+                    method: "POST",
+                    body: JSON.stringify({"mapType": "satellite", "language": "en-US", "region": "US"}),
+                    headers: {"Content-type": "application/json; charset=UTF-8"}
+                    })
+                    .then((response) => response.json())
+                    .then((json) => json.session)
+                    .then((googleMapTilesAPIToken) => {
+                        const maxDistanceFromTruckstopOriginKm = 0.4;
+                        const mapNames = ["parcel", "cstore", "retail", "truck"];
+
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
+                        document.getElementById('assignmentId').value = assignmentId;
+
+                        const turkSubmitTo = urlParams.get('turkSubmitTo');
+                        if (turkSubmitTo) {
+                            document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
                         }
-                    });
-                    maps[mapName].addControl(drawControl);
-            
-                    maps[mapName].on(L.Draw.Event.CREATED, (event) => {
-                        const layer = event.layer;
-                        drawnItems.addLayer(layer);
-                        geojsons[mapName] = drawnItems.toGeoJSON();
-                        geojsons[mapName]["features"][0]["properties"]["area"] = parseInt(L.GeometryUtil.geodesicArea(layer.getLatLngs()[0]));
-                    });
-                }
-            
-                document.getElementById('mturk-form').addEventListener('submit', (event) => {
-                    event.preventDefault(); // Prevent form submission
-                    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-            
-                    let error = false;
-                    if (!geojsons["parcel"]) {
-                        error = true;
-                    } else if (geojsons["parcel"]["features"][0]["properties"]["area"] < 500 || geojsons["parcel"]["features"][0]["properties"]["area"] > 200000) {
-                        error = true;
-                    } else if (geojsons["retail"] && (geojsons["retail"]["features"][0]["properties"]["area"] < 20 || geojsons["retail"]["features"][0]["properties"]["area"] > 4000)) {
-                        error = true;
-                    } else if (geojsons["truck"] && (geojsons["truck"]["features"][0]["properties"]["area"] < 20 || geojsons["truck"]["features"][0]["properties"]["area"] > 2500)) {
-                        error = true;
-                    }
-            
-                    if (error) {
-                        document.querySelector(".modal-body").innerHTML = "Task is incorrect or incomplete so it cannot be submitted.";
-                        errorModal.show();
-                    } else {
-                        const geojson = {"type": "FeatureCollection", "features": []};
+
+                        const truckstopOrigin = L.latLng(parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0);
+                        const maps = {};
+                        const geojsons = {};
                         for (let mapName of mapNames) {
-                            if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
-                                const feature = geojsons[mapName]["features"][0];
-                                feature["id"] = mapName;
-                                geojson.features.push(feature);
-                            }
+                            maps[mapName] = L.map(`${mapName}_map`, {
+                                center: truckstopOrigin,
+                                zoom: parseInt(urlParams.get('zoom')) || 18,
+                                minZoom: 18,
+                                maxZoom: 21
+                            });
+
+                            L.tileLayer(`https://tile.googleapis.com/v1/2dtiles/{z}/{x}/{y}?session=${googleMapTilesAPIToken}&key=${googleMapTilesAPIKey}`, {maxZoom: 21}).addTo(maps[mapName]);
+
+                            const centerPoint = maps[mapName].getCenter();
+                            L.marker(centerPoint).addTo(maps[mapName]);
+
+                            const drawnItems = new L.FeatureGroup();
+                            maps[mapName].addLayer(drawnItems);
+
+                            const drawControl = new L.Control.Draw({
+                                edit: { featureGroup: drawnItems },
+                                draw: {
+                                    polyline: false,
+                                    rectangle: false,
+                                    circle: false,
+                                    circlemarker: false,
+                                    polygon: { allowIntersection: false, showArea: true },
+                                    marker: false,
+                                }
+                            });
+                            maps[mapName].addControl(drawControl);
+
+                            maps[mapName].on(L.Draw.Event.CREATED, (event) => {
+                                const layer = event.layer;
+                                drawnItems.addLayer(layer);
+                                geojsons[mapName] = drawnItems.toGeoJSON();
+                                geojsons[mapName]["features"][0]["properties"]["area"] = parseInt(L.GeometryUtil.geodesicArea(layer.getLatLngs()[0]));
+                            });
                         }
-                        document.getElementById('geojsonData').value = JSON.stringify(geojson);
-                    }
-                });
+
+                        document.getElementById('mturk-form').addEventListener('submit', (event) => {
+                            event.preventDefault(); // Prevent form submission
+                            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+
+                            const truckstopOriginTurf = turf.point([truckstopOrigin.lng, truckstopOrigin.lat]);
+                            let error = false;
+                            if (!geojsons["parcel"]) {
+                                error = true;
+                            } else if (!turf.booleanPointInPolygon(truckstopOriginTurf, turf.polygon(geojsons["parcel"]["features"][0]["geometry"]["coordinates"]))) {
+                                error = true;
+                            } else if (geojsons["parcel"]["features"][0]["properties"]["area"] < 500 || geojsons["parcel"]["features"][0]["properties"]["area"] > 200000) {
+                                error = true;
+                            } else if (geojsons["cstore"] && turf.pointToLineDistance(truckstopOriginTurf, turf.polygonToLine(turf.polygon(geojsons["cstore"]["features"][0]["geometry"]["coordinates"]))) > maxDistanceFromTruckstopOriginKm) {
+                                error = true;
+                            } else if (geojsons["retail"] && turf.pointToLineDistance(truckstopOriginTurf, turf.polygonToLine(turf.polygon(geojsons["retail"]["features"][0]["geometry"]["coordinates"]))) > maxDistanceFromTruckstopOriginKm) {
+                                error = true;
+                            } else if (geojsons["retail"] && (geojsons["retail"]["features"][0]["properties"]["area"] < 20 || geojsons["retail"]["features"][0]["properties"]["area"] > 4000)) {
+                                error = true;
+                            } else if (geojsons["truck"] && turf.pointToLineDistance(truckstopOriginTurf, turf.polygonToLine(turf.polygon(geojsons["truck"]["features"][0]["geometry"]["coordinates"]))) > maxDistanceFromTruckstopOriginKm) {
+                                error = true;
+                            } else if (geojsons["truck"] && (geojsons["truck"]["features"][0]["properties"]["area"] < 20 || geojsons["truck"]["features"][0]["properties"]["area"] > 2500)) {
+                                error = true;
+                            }
+
+                            if (error) {
+                                document.querySelector(".modal-body").innerHTML = "Task is incorrect or incomplete so it cannot be submitted.";
+                                errorModal.show();
+                            } else {
+                                const geojson = {"type": "FeatureCollection", "features": []};
+                                for (let mapName of mapNames) {
+                                    if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
+                                        const feature = geojsons[mapName]["features"][0];
+                                        feature["id"] = mapName;
+                                        geojson.features.push(feature);
+                                    }
+                                }
+                                document.getElementById('geojsonData').value = JSON.stringify(geojson);
+                            }
+                        });
+                    });
             });
-            </script>
-            
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     </body>
