@@ -214,7 +214,6 @@
                 }
 
                 document.getElementById('mturk-form').addEventListener('submit', (event) => {
-                    event.preventDefault(); // Prevent form submission
                     const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
 
                     const truckstopOriginTurf = turf.point([truckstopOrigin.lng, truckstopOrigin.lat]);
@@ -238,6 +237,7 @@
                     }
 
                     if (error) {
+                        event.preventDefault(); // Prevent form submission
                         document.querySelector(".modal-body").innerHTML = "Task is incorrect or incomplete so it cannot be submitted.";
                         errorModal.show();
                     } else {
