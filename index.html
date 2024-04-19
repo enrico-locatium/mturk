@@ -166,6 +166,7 @@
                 const mapNames = ["parcel", "cstore", "retail", "truck"];
 
                 const urlParams = new URLSearchParams(window.location.search);
+                const truckstop_id = urlParams.get('truckstop_id') || 'ID_NOT_ASSIGNED';
                 const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
                 document.getElementById('assignmentId').value = assignmentId;
 
@@ -251,7 +252,7 @@
                         document.querySelector(".modal-body").innerHTML = "Task is incorrect or incomplete so it cannot be submitted.";
                         errorModal.show();
                     } else {
-                        const geojson = {"type": "FeatureCollection", "features": []};
+                        const geojson = {"type": "FeatureCollection", "id": truckstop_id, "features": []};
                         for (let mapName of mapNames) {
                             if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
                                 const feature = geojsons[mapName]["features"][0];
