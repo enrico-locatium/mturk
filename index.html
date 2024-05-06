@@ -235,7 +235,7 @@
                     //     error = True;
                     // } else if (!geojsons["truck"]) {
                     //     error = True;
-                    } else if (!geojsons["truck"] && !geojsons["cstore"] && !geojsons["retail"]) {
+                    } else if ((!geojsons["truck"]) && (!geojsons["cstore"]) && (!geojsons["retail"])) {
                         error = True;
                     } else if (!turf.booleanPointInPolygon(truckstopOriginTurf, turf.polygon(geojsons["parcel"]["features"][0]["geometry"]["coordinates"]))) {
                         error = true;
