@@ -40,11 +40,11 @@
                     <h2>Draw the elements of a gas station on the map</h2>
                     <p>Please follow the instructions below to complete the task:</p>
                     <ul>
-                        <li><strong>Objective:</strong> Your task is to draw polygons around different areas (parcel, convenience store, truck canopy and retail canopy) of the marked gas station or truckstop on the map.</li>
-                        <li><strong>Drawing precision:</strong> Use the map's zoom function for better precision in your drawing. Ensure your polygon accurately covers the entire area of interest in each case. <strong style="color: red;"> Draw only polygons which you can confidently identify.</strong></li>
+                        <li><strong>Objective:</strong> Your task is to draw polygons around different areas (parcel and canopy) of the marked gas station on the map.</li>
+                        <li><strong>Drawing precision:</strong> Use the map's zoom function for better precision in your drawing. Ensure your polygon accurately covers the entire area of interest in each case. 
                         <li><strong>Submission:</strong> Once you are satisfied with the polygons you have drawn, submit your work using the 'Submit' button at the end.</li>
                     </ul>
-                    <p>If you have any questions or encounter any issues, please refer to the task guidelines or contact support. <strong style="color: red;">Do not submit results if you are not sure of the quality. </strong></p>
+                    <p>If you have any questions or encounter any issues, please refer to the task guidelines or contact support. 
                 </div>
             </div>
             <form id="mturk-form" class="text-center" method="POST" action="">
@@ -68,11 +68,9 @@
                             What to include:
                             </p>
                             <ul>
-                                <li> ✅Any truckstop area connected to the station</li>
-                                <li> ✅Parking areas (cars and trucks)</li>
-                                <li> ✅Convenience stores</li>
-                                <li> ✅Car/truck wash</li>
-                                <li> ✅Repair shops</li>
+                                <li> ✅Any area part of the gas station</li>
+                                <li> ✅Parking areas (cars and trucks) inside the gas station</li>
+                                <li> ✅Convenience store</li>
                             </ul>
                             <br> <br>
                              <p class="card-text"> What <strong> NOT </strong> to include:
@@ -97,31 +95,12 @@
             <div class="row mb-2">
                 <div class="col-3">
                     <div class="card">
-                        <img src="cstore.png" class="card-img-top" alt="Convenience store drawing instructions">
-                        <div class="card-body">
-                            <h5 class="card-title">Convenience store</h5>
-                            <p class="card-text"><strong>Draw a polygon around the convenience store found at the gas station.</strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card">
-                        <div class="card-body">
-                            <div id="cstore_map" class="map"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-3">
-                    <div class="card">
                         <img src="retail.png" class="card-img-top" alt="Fuel canopy drawing instructions">
                         <div class="card-body">
                             <h5 class="card-title">Retail canopy</h5>
                             <p class="card-text"><strong>Draw a polygon around the retail canopy found at the gas station. This is the roof structure where cars go to refuel.
-                                <li></strong> Hint: use the location of cars, if available, to help you find the correct canopy element.</li>
+                                <li></strong> Hint: use the location of cars, if available, to help you find the canopy element.</li>
                                 <li>Look for the gas station icon: <img src="gas-icon.png" alt="Gas Station Icon" style="vertical-align: middle; width: 25px; height: 25px;"> to identify the right building.</li>
-                                <li>Sometimes the retail canopy has a "T" shape. </li>
 
                         </div>
                     </div>
@@ -130,24 +109,6 @@
                     <div class="card">
                         <div class="card-body">
                             <div id="retail_map" class="map"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-3">
-                    <div class="card">
-                        <img src="truck.png" class="card-img-top" alt="Truck canopy drawing instructions">
-                        <div class="card-body">
-                            <h5 class="card-title">Truck canopy</h5>
-                            <p class="card-text"><strong>Draw a polygon around the truck canopy found at the gas station.</strong> Hint: use the location of trucks, if available, to help you find the correct canopy element.
-                        </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card">
-                        <div class="card-body">
-                            <div id="truck_map" class="map"></div>
                         </div>
                     </div>
                 </div>
@@ -161,16 +122,14 @@
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const maxDistanceFromTruckstopOriginKm = 0.4;
-                const minAreaParcelM2 = 500;
+                const minAreaParcelM2 = 400;
                 const maxAreaParcelM2 = 200000;
                 const minAreaRetailM2 = 20;
-                const maxAreaRetailM2 = 4000;
-                const minAreaTruckM2 = 20;
-                const maxAreaTruckM2 = 2500;
-                const mapNames = ["parcel", "cstore", "retail", "truck"];
+                const maxAreaRetailM2 = 1000;
+                const mapNames = ["parcel", "retail"];
 
                 const urlParams = new URLSearchParams(window.location.search);
-                const truckstop_id = urlParams.get('truckstop_id') || 'ID_NOT_ASSIGNED';
+                const station_id = urlParams.get('station_id') || 'ID_NOT_ASSIGNED';
                 const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
                 document.getElementById('assignmentId').value = assignmentId;
 
@@ -229,27 +188,15 @@
                     let error = false;
                     if (!geojsons["parcel"]) {
                         error = true;
-                    // } else if (!geojsons["retail"]) {
-                    //     error = True;
-                    // } else if (!geojsons["cstore"]) {
-                    //     error = True;
-                    // } else if (!geojsons["truck"]) {
-                    //     error = True;
-                    } else if ((!geojsons["truck"]) && (!geojsons["cstore"]) && (!geojsons["retail"])) {
+                    } else if (!geojsons["retail"]) {
                         error = True;
                     } else if (!turf.booleanPointInPolygon(truckstopOriginTurf, turf.polygon(geojsons["parcel"]["features"][0]["geometry"]["coordinates"]))) {
                         error = true;
                     } else if (geojsons["parcel"]["features"][0]["properties"]["area"] < minAreaParcelM2 || geojsons["parcel"]["features"][0]["properties"]["area"] > maxAreaParcelM2) {
                         error = true;
-                    } else if (geojsons["cstore"] && turf.pointToLineDistance(truckstopOriginTurf, turf.polygonToLine(turf.polygon(geojsons["cstore"]["features"][0]["geometry"]["coordinates"]))) > maxDistanceFromTruckstopOriginKm) {
-                        error = true;
                     } else if (geojsons["retail"] && turf.pointToLineDistance(truckstopOriginTurf, turf.polygonToLine(turf.polygon(geojsons["retail"]["features"][0]["geometry"]["coordinates"]))) > maxDistanceFromTruckstopOriginKm) {
                         error = true;
                     } else if (geojsons["retail"] && (geojsons["retail"]["features"][0]["properties"]["area"] < minAreaRetailM2 || geojsons["retail"]["features"][0]["properties"]["area"] > maxAreaRetailM2)) {
-                        error = true;
-                    } else if (geojsons["truck"] && turf.pointToLineDistance(truckstopOriginTurf, turf.polygonToLine(turf.polygon(geojsons["truck"]["features"][0]["geometry"]["coordinates"]))) > maxDistanceFromTruckstopOriginKm) {
-                        error = true;
-                    } else if (geojsons["truck"] && (geojsons["truck"]["features"][0]["properties"]["area"] < minAreaTruckM2 || geojsons["truck"]["features"][0]["properties"]["area"] > maxAreaTruckM2)) {
                         error = true;
                     }
 
@@ -258,7 +205,7 @@
                         document.querySelector(".modal-body").innerHTML = "Task is incorrect or incomplete so it cannot be submitted.";
                         errorModal.show();
                     } else {
-                        const geojson = {"type": "FeatureCollection", "id": truckstop_id, "features": []};
+                        const geojson = {"type": "FeatureCollection", "id": station_id, "features": []};
                         for (let mapName of mapNames) {
                             if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
                                 const feature = geojsons[mapName]["features"][0];
