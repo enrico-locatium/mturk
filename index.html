@@ -225,6 +225,11 @@
                         }
                     }
                     document.getElementById('geojsonData').value = JSON.stringify(geojson);
+
+                    if (assignmentId == 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING') {
+                        event.preventDefault(); // Prevent form submission when testing
+                        console.log(document.getElementById('geojsonData').value);
+                    }
                 }
             });
         });
