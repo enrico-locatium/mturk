@@ -1,223 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Mechanical Turk Map Task</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-        <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
-        <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.js"></script>
-        <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">
-        <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js'></script>
-        <style>
-            .map { height: 80vh; width: 100%; }
-            body { padding-top: 80px; }
-        </style>
-    </head>
-    <body>
-        <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="errorModalLabel">Error</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body"></div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-                    </div>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mechanical Turk Map Task</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.min.css" rel="stylesheet">
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js'></script>
+    <style>
+        .map { height: 80vh; width: 100%; }
+        body { padding-top: 80px; }
+    </style>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css' rel='stylesheet' />
+</head>
+<body>
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="errorModalLabel">Error</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
-        <div class="container">
-            <div class="offcanvas offcanvas-start show" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
-                <div class="offcanvas-header">
-                    <h5 class="offcanvas-title" id="offcanvasLabel">Task Instructions</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
-                <div class="offcanvas-body">
-                    <h2>Draw the elements of a gas station on the map</h2>
-                    <p>Please follow the instructions below to complete the task:</p>
-                    <ul>
-                        <li><strong>Objective:</strong> Your task is to draw polygons around different areas (parcel and canopy) of the marked gas station on the map.</li>
-                        <li><strong>Drawing precision:</strong> Use the map's zoom function for better precision in your drawing. Ensure your polygon accurately covers the entire area of interest in each case. 
-                        <li><strong>Submission:</strong> Once you are satisfied with the polygons you have drawn, submit your work using the 'Submit' button at the end.</li>
-                    </ul>
-                    <p>If you have any questions or encounter any issues, please refer to the task guidelines or contact support. 
-                </div>
+    </div>
+    <div class="container">
+        <div class="offcanvas offcanvas-start show" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasLabel">Task Instructions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
-            <form id="mturk-form" class="text-center" method="POST" action="">
+            <div class="offcanvas-body">
+                <h2>Draw the elements of a gas station on the map</h2>
+                <p>Please follow the instructions below to complete the task:</p>
+                <ul>
+                    <li><strong>Objective:</strong> Your task is to draw polygons around different areas (parcel and canopy) of the marked gas station on the map.</li>
+                    <li><strong>Drawing precision:</strong> Use the map's zoom function for better precision in your drawing. Ensure your polygon accurately covers the entire area of interest in each case.
+                    <li><strong>Submission:</strong> Once you are satisfied with the polygons you have drawn, submit your work using the 'Submit' button at the end. 
+                        <strong><b style="color: red;">Only submit results of which you are confident. Mislabelled parecels will be rejected.</b></strong></li>
+                </ul>
+                <p>If you have any questions or encounter any issues, please refer to the task guidelines or contact support.
+            </div>
+        </div>
+        <form id="mturk-form" class="text-center" method="POST" action="">
 
-            <nav class="navbar fixed-top bg-body-tertiary"> 
-                <div class="container-fluid">
-                    <a class="navbar-brand" href="#">Draw the elements of a gas station on the map</a>
-                        <input type="hidden" name="assignmentId" id="assignmentId" value="">
-                        <input type="hidden" id="geojsonData" name="geojsonData" value="">
-                        <button class="btn btn-outline-success" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas">Instructions</button>
-                </div>
-            </nav>
-            <div class="row mb-2">
-                <div class="col-3">
-                    <div class="card">
-                        <img src="parcel.png" class="card-img-top" alt="Parcel drawing instructions">
-                        <div class="card-body">
-                            <h5 class="card-title">Parcel</h5>
-                            <p class="card-text"><strong>Draw a polygon around the parcel/area that contains the gas station.</strong> Make sure to include all accessible areas connected to the gas station.
-                                <br> <br>
-                            What to include:
-                            </p>
-                            <ul>
-                                <li> ✅Any area part of the gas station</li>
-                                <li> ✅Parking areas (cars and trucks) inside the gas station</li>
-                                <li> ✅Convenience store</li>
-                            </ul>
+        <nav class="navbar fixed-top bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Draw the elements of a gas station on the map</a>
+                    <input type="hidden" name="assignmentId" id="assignmentId" value="">
+                    <input type="hidden" id="geojsonData" name="geojsonData" value="">
+                    <button class="btn btn-outline-success" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas">Instructions</button>
+            </div>
+        </nav>
+        <div class="row mb-2">
+            <div class="col-3">
+                <div class="card">
+                    <img src="parcel.png" class="card-img-top" alt="Parcel drawing instructions">
+                    <div class="card-body">
+                        <h5 class="card-title">Parcel</h5>
+                        <p class="card-text"><strong>Draw a polygon around the area that contains the gas station.</strong> Make sure to include all accessible areas connected to the gas station.
+                            <br>
+                            <strong><b style="color: red;">Only submit results of which you are confident. </b></strong></li>
                             <br> <br>
-                             <p class="card-text"> What <strong> NOT </strong> to include:
-                            </p>
-                            <ul>
-                                <li> ❌ Any road which does not serve as entrance to the station </li>
-                                <li> ❌ Residential properties </li>
-                                <li> ❌ Gas staion other than the one marked by the pin</li>
-                            </ul>
+                        What to include:
+                        </p>
+                        <ul>
+                            <li> ✅Any area part of the gas station</li>
+                            <li> ✅Parking areas (cars and trucks) inside the gas station</li>
+                            <li> ✅Convenience store</li>
+                        </ul>
+                        <br> <br>
+                         <p class="card-text"> What <strong> NOT </strong> to include:
+                        </p>
+                        <ul>
+                            <li> ❌ Any road which does not serve as entrance to the station </li>
+                            <li> ❌ Residential properties </li>
+                            <li> ❌ Gas staion other than the one marked by the pin</li>
+                        </ul>
 
-                        </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card">
-                        <div class="card-body">
-                            <div id="parcel_map" class="map"></div>
-                        </div>
                     </div>
                 </div>
             </div>
-            <div class="row mb-2">
-                <div class="col-3">
-                    <div class="card">
-                        <img src="retail.png" class="card-img-top" alt="Fuel canopy drawing instructions">
-                        <div class="card-body">
-                            <h5 class="card-title">Retail canopy</h5>
-                            <p class="card-text"><strong>Draw a polygon around the retail canopy found at the gas station. This is the roof structure where cars go to refuel.
-                                <li></strong> Hint: use the location of cars, if available, to help you find the canopy element.</li>
-                                <li>Look for the gas station icon: <img src="gas-icon.png" alt="Gas Station Icon" style="vertical-align: middle; width: 25px; height: 25px;"> to identify the right building.</li>
-
-                        </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card">
-                        <div class="card-body">
-                            <div id="retail_map" class="map"></div>
-                        </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="parcel_map" class="map"></div>
                     </div>
                 </div>
             </div>
-            <div class="d-flex justify-content-end"  style="width: 100%; margin-top: 20px; margin-bottom: 50px">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>  
-        </form>
+        </div> 
+        <!-- <div class="row mb-2">
+            <div class="col-3">
+                <div class="card">
+                    <img src="retail.png" class="card-img-top" alt="Fuel canopy drawing instructions">
+                    <div class="card-body">
+                        <h5 class="card-title">Retail canopy</h5>
+                        <p class="card-text"><strong>Draw a polygon around the retail canopy found at the gas station. This is the roof structure where cars go to refuel.
+                            <li></strong> Hint: use the location of cars, if available, to help you find the canopy element.</li>
+                            <li>Look for the gas station icon: <img src="gas-icon.png" alt="Gas Station Icon" style="vertical-align: middle; width: 25px; height: 25px;"> to identify the right building.</li>
 
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="retail_map" class="map"></div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+        <div class="d-flex justify-content-end"  style="width: 100%; margin-top: 20px; margin-bottom: 50px">
+            <button type="submit" class="btn btn-primary">Submit</button>
         </div>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const maxDistanceFromTruckstopOriginKm = 0.4;
-                const minAreaParcelM2 = 400;
-                const maxAreaParcelM2 = 200000;
-                const minAreaRetailM2 = 20;
-                const maxAreaRetailM2 = 1000;
-                const mapNames = ["parcel", "retail"];
+    </form>
 
-                const urlParams = new URLSearchParams(window.location.search);
-                const station_id = urlParams.get('station_id') || 'ID_NOT_ASSIGNED';
-                const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
-                document.getElementById('assignmentId').value = assignmentId;
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const maxDistanceFromTruckstopOriginKm = 0.4;
+            const minAreaParcelM2 = 400;
+            const maxAreaParcelM2 = 200000;
+            const minAreaRetailM2 = 20;
+            const maxAreaRetailM2 = 1000;
+            const mapNames = ["parcel"];//, "retail"];
 
-                const turkSubmitTo = urlParams.get('turkSubmitTo') || 'SIMULATED_TURK_SUBMIT_TO_FOR_TESTING';
-                if (turkSubmitTo) {
-                    document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
-                }
+            const urlParams = new URLSearchParams(window.location.search);
+            const station_id = urlParams.get('station_id') || 'ID_NOT_ASSIGNED';
+            const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
+            document.getElementById('assignmentId').value = assignmentId;
 
-                const truckstopOrigin = L.latLng(parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0);
-                const maps = {};
-                const geojsons = {};
-                for (let mapName of mapNames) {
-                    maps[mapName] = L.map(`${mapName}_map`, {
-                        center: truckstopOrigin,
-                        zoom: parseInt(urlParams.get('zoom')) || 18,
-                        minZoom: 18,
-                        maxZoom: 21
-                    });
+            const turkSubmitTo = urlParams.get('turkSubmitTo') || 'SIMULATED_TURK_SUBMIT_TO_FOR_TESTING';
+            if (turkSubmitTo) {
+                document.getElementById('mturk-form').action = `${turkSubmitTo}/mturk/externalSubmit`;
+            }
 
-                    L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {maxZoom: 21}).addTo(maps[mapName]);
+            const truckstopOrigin = L.latLng(parseFloat(urlParams.get('latitude')) || 0, parseFloat(urlParams.get('longitude')) || 0);
+            const maps = {};
+            const geojsons = {};
+            for (let mapName of mapNames) {
+                maps[mapName] = L.map(`${mapName}_map`, {
+                    center: truckstopOrigin,
+                    zoom: parseInt(urlParams.get('zoom')) || 18,
+                    minZoom: 18,
+                    maxZoom: 21
+                });
 
-                    L.marker(truckstopOrigin).addTo(maps[mapName]);
+                // L.tileLayer(`https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYWRhcnZlIiwiYSI6ImNsdzk2emhtcDAwZjgya215NHNidng0cGMifQ.HT-r-m-7GExkzTWMhPJxXQ`, {
+                //     id: 'mapbox/satellite-streets-v11',
+                //     maxZoom: 21,
+                //     accessToken: 'pk.eyJ1IjoiYWRhcnZlIiwiYSI6ImNsdzk2emhtcDAwZjgya215NHNidng0cGMifQ.HT-r-m-7GExkzTWMhPJxXQ'
+                // }).addTo(maps[mapName]);
+                L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {maxZoom: 21}).addTo(maps[mapName]);
+                // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                //     maxZoom: 19,
+                //     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                //     }).addTo(maps[mapName]);
 
-                    const drawnItems = new L.FeatureGroup();
-                    maps[mapName].addLayer(drawnItems);
+                L.marker(truckstopOrigin).addTo(maps[mapName]);
 
-                    const drawControl = new L.Control.Draw({
-                        edit: { featureGroup: drawnItems },
-                        draw: {
-                            polyline: false,
-                            rectangle: false,
-                            circle: false,
-                            circlemarker: false,
-                            polygon: { allowIntersection: false, showArea: true },
-                            marker: false,
-                        }
-                    });
-                    maps[mapName].addControl(drawControl);
+                const drawnItems = new L.FeatureGroup();
+                maps[mapName].addLayer(drawnItems);
 
-                    maps[mapName].on(L.Draw.Event.CREATED, (event) => {
-                        const layer = event.layer;
-                        drawnItems.addLayer(layer);
-                        geojsons[mapName] = drawnItems.toGeoJSON();
-                        geojsons[mapName]["features"][0]["properties"]["area"] = parseInt(L.GeometryUtil.geodesicArea(layer.getLatLngs()[0]));
-                    });
-
-                    maps[mapName].on(L.Draw.Event.DELETESTOP, (event) => {
-                        geojsons[mapName] = null;
-                    });
-                }
-
-                document.getElementById('mturk-form').addEventListener('submit', (event) => {
-                    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-
-                    const truckstopOriginTurf = turf.point([truckstopOrigin.lng, truckstopOrigin.lat]);
-                    let error = false;
-                    if (!geojsons["parcel"]) {
-                        error = true;
-                    } else if (!geojsons["retail"]) {
-                        error = True;
-                    } else if (!turf.booleanPointInPolygon(truckstopOriginTurf, turf.polygon(geojsons["parcel"]["features"][0]["geometry"]["coordinates"]))) {
-                        error = true;
-                    } else if (geojsons["parcel"]["features"][0]["properties"]["area"] < minAreaParcelM2 || geojsons["parcel"]["features"][0]["properties"]["area"] > maxAreaParcelM2) {
-                        error = true;
-                    } else if (geojsons["retail"] && turf.pointToLineDistance(truckstopOriginTurf, turf.polygonToLine(turf.polygon(geojsons["retail"]["features"][0]["geometry"]["coordinates"]))) > maxDistanceFromTruckstopOriginKm) {
-                        error = true;
-                    } else if (geojsons["retail"] && (geojsons["retail"]["features"][0]["properties"]["area"] < minAreaRetailM2 || geojsons["retail"]["features"][0]["properties"]["area"] > maxAreaRetailM2)) {
-                        error = true;
-                    }
-
-                    if (error) {
-                        event.preventDefault(); // Prevent form submission
-                        document.querySelector(".modal-body").innerHTML = "Task is incorrect or incomplete so it cannot be submitted.";
-                        errorModal.show();
-                    } else {
-                        const geojson = {"type": "FeatureCollection", "id": station_id, "features": []};
-                        for (let mapName of mapNames) {
-                            if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
-                                const feature = geojsons[mapName]["features"][0];
-                                feature["id"] = mapName;
-                                geojson.features.push(feature);
-                            }
-                        }
-                        document.getElementById('geojsonData').value = JSON.stringify(geojson);
+                const drawControl = new L.Control.Draw({
+                    edit: { featureGroup: drawnItems },
+                    draw: {
+                        polyline: false,
+                        rectangle: false,
+                        circle: false,
+                        circlemarker: false,
+                        polygon: { allowIntersection: false, showArea: true },
+                        marker: false,
                     }
                 });
+                maps[mapName].addControl(drawControl);
+
+                maps[mapName].on(L.Draw.Event.CREATED, (event) => {
+                    const layer = event.layer;
+                    drawnItems.addLayer(layer);
+                    geojsons[mapName] = drawnItems.toGeoJSON();
+                    geojsons[mapName]["features"][0]["properties"]["area"] = parseInt(L.GeometryUtil.geodesicArea(layer.getLatLngs()[0]));
+                });
+
+                maps[mapName].on(L.Draw.Event.DELETESTOP, (event) => {
+                    geojsons[mapName] = null;
+                });
+            }
+
+            document.getElementById('mturk-form').addEventListener('submit', (event) => {
+                const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+
+                const truckstopOriginTurf = turf.point([truckstopOrigin.lng, truckstopOrigin.lat]);
+                let error = false;
+                if (!geojsons["parcel"]) {
+                    error = true;
+                } else if (!turf.booleanPointInPolygon(truckstopOriginTurf, turf.polygon(geojsons["parcel"]["features"][0]["geometry"]["coordinates"]))) {
+                    error = true;
+                } else if (geojsons["parcel"]["features"][0]["properties"]["area"] < minAreaParcelM2 || geojsons["parcel"]["features"][0]["properties"]["area"] > maxAreaParcelM2) {
+                    error = true;
+                }
+
+                if (error) {
+                    event.preventDefault(); // Prevent form submission
+                    document.querySelector(".modal-body").innerHTML = "Task is incorrect or incomplete so it cannot be submitted.";
+                    errorModal.show();
+                } else {
+                    const geojson = {"type": "FeatureCollection", "id": station_id, "features": []};
+                    for (let mapName of mapNames) {
+                        if (geojsons[mapName] && (geojsons[mapName]["features"].length > 0)) {
+                            const feature = geojsons[mapName]["features"][0];
+                            feature["id"] = mapName;
+                            geojson.features.push(feature);
+                        }
+                    }
+                    document.getElementById('geojsonData').value = JSON.stringify(geojson);
+
+                    if (assignmentId == 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING') {
+                        event.preventDefault(); // Prevent form submission when testing
+                        console.log(document.getElementById('geojsonData').value);
+                    }
+                }
             });
-        </script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    </body>
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
 </html>
