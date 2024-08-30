@@ -154,7 +154,7 @@
                 const mapNames = ["parcel", "cstore", "retail"];
 
                 const urlParams = new URLSearchParams(window.location.search);
-                const truckstop_id = urlParams.get('truckstop_id') || 'ID_NOT_ASSIGNED';
+                const truckstop_id = urlParams.get('truckstop_id') || urlParams.get('id') || urlParams.get('station_id') || 'ID_NOT_ASSIGNED';
                 const assignmentId = urlParams.get('assignmentId') || 'SIMULATED_ASSIGNMENT_ID_FOR_TESTING';
                 document.getElementById('assignmentId').value = assignmentId;
 
